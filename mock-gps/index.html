@@ -1,0 +1,194 @@
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>mock-gps</title>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/vuetify@3.6.4/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.6.4/dist/vuetify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <script></script>
+
+    <div id="app">
+      <div class="d-flex justify-center pt-5">
+        <v-card max-width="800px" width="100%">
+          <v-card-title class="font-weight-bold">
+            GPS 収集 モックページ
+          </v-card-title>
+          <div class="pa-3" v-if="!user">
+            <v-row>
+              <v-col>
+                <v-text-field v-model="mail" label="mailaddress" />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-text-field v-model="pass" label="password" type="pass" />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col class="d-flex justify-end ga-2">
+                <v-btn color="primary" @click="execCreate" v-if="false"
+                  >ユーザー新規作成</v-btn
+                >
+                <v-btn color="primary" @click="execLogin">ログイン</v-btn>
+              </v-col>
+            </v-row>
+          </div>
+          <div class="pa-5">
+            ログインすると、一定間隔で指定したバスのGPS情報をFireStoreに送信します。<br />
+            また、一定間隔でFireStoreからデータを取得し、マップは更新されます。
+          </div>
+          <div v-if="user">
+            <v-row>
+              <v-col>
+                <v-select
+                  v-model="busNumber"
+                  :items="[{value: 1,title:'バス1'}, {value: 2,title:'バス2'}]"
+                />
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-btn v-if="writerJob === null" @click="start" color="primary">
+                  記録開始
+                </v-btn>
+                <v-btn v-else @click="end" color="error"> 記録停止 </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card>
+      </div>
+      <div class="d-flex justify-center pt-5">
+        <v-card
+          id="maparea"
+          max-width="480px"
+          width="100%"
+          class="d-flex justify-center"
+        >
+        </v-card>
+        <v-card width="180px">
+          <div>バス: {{ busNumber }}</div>
+          <div>緯度: {{ pinX }}</div>
+          <div>経度: {{ pinY }}</div>
+          <div>時刻: {{ plotTime }}</div>
+        </v-card>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        loginWithEmailPassword,
+        createWithEmailPassword,
+        writeGeoData,
+        runReader,
+        runWriter,
+      } from "./firebase.mjs";
+
+      const { createApp, ref } = Vue;
+      const { createVuetify } = Vuetify;
+      const vuetify = createVuetify();
+
+      createApp({
+        setup() {
+          const mail = ref("hoppingganonapp@gmail.com");
+          const pass = ref("P@ssw0rd");
+          const user = ref(null);
+          const busNumber = ref(1);
+          const readerJob = ref(null);
+          const writerJob = ref(null);
+          const plotTime = ref("");
+
+          const plotBusNumber = ref(0);
+          const cameraX = ref(0);
+          const cameraY = ref(0);
+          const pinX = ref(0);
+          const pinY = ref(0);
+
+          const map = ref(null);
+
+          const execLogin = async () => {
+            try {
+              user.value = await loginWithEmailPassword(mail.value, pass.value);
+              mail.value = "";
+              pass.value = "";
+            } catch (e) {
+              alert(e);
+            }
+          };
+
+          const execCreate = async () => {
+            try {
+              user.value = await createWithEmailPassword(
+                mail.value,
+                pass.value
+              );
+              mail.value = "";
+              pass.value = "";
+            } catch (e) {
+              alert(e);
+            }
+          };
+
+          const execWrite = async () => {
+            await writeGeoData(1);
+          };
+
+          const start = () => {
+            writerJob.value = runWriter(busNumber.value);
+          };
+          const end = () => {
+            clearInterval(writerJob.value);
+            writerJob.value = null;
+          };
+
+          readerJob.value = runReader(busNumber.value, (dataset) => {
+            const maparea = document.getElementById("maparea");
+            const newMap = document.createElement("iframe");
+            if (map.value) {
+              maparea.removeChild(map.value);
+            }
+            plotBusNumber.value = dataset[0].b;
+            plotTime.value = new Date(dataset[0].c).toLocaleTimeString("ja-JP");
+            cameraX.value = dataset[0].x;
+            cameraY.value = dataset[0].y;
+            pinX.value = dataset[0].x;
+            pinY.value = dataset[0].y;
+            newMap.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBG_ReuGLYpDl3EGwVfEsOn608HQ-JJ5Ak&q=${pinY.value},${pinX.value}&center=${cameraY.value},${cameraX.value}&zoom=18&maptype=satellite`;
+            newMap.width = maparea.clientWidth;
+            newMap.height = "400";
+            newMap.frameborder = "0";
+            newMap.marginwidth = "0";
+            newMap.marginheight = "0";
+            newMap.scrolling = "no";
+            maparea.appendChild(newMap);
+            map.value = newMap;
+          });
+          return {
+            mail,
+            pass,
+            user,
+            busNumber,
+            writerJob,
+            plotBusNumber,
+            plotTime,
+            pinX,
+            pinY,
+            execLogin,
+            execCreate,
+            execWrite,
+            start,
+            end,
+          };
+        },
+      })
+        .use(vuetify)
+        .mount("#app");
+    </script>
+  </body>
+</html>
