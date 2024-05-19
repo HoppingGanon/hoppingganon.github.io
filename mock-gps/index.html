@@ -28,7 +28,7 @@
             </v-row>
             <v-row>
               <v-col>
-                <v-text-field v-model="pass" label="password" type="pass" />
+                <v-text-field v-model="pass" label="password" type="password" />
               </v-col>
             </v-row>
             <v-row>
@@ -96,8 +96,8 @@
 
       createApp({
         setup() {
-          const mail = ref("hoppingganonapp@gmail.com");
-          const pass = ref("P@ssw0rd");
+          const mail = ref("");
+          const pass = ref("");
           const user = ref(null);
           const busNumber = ref(1);
           const readerJob = ref(null);
