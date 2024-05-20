@@ -84,12 +84,24 @@
                     scrolling="no"
                   ></iframe>
                 </v-card>
-                <v-card width="180px">
-                  <div>バス: <br />{{ data.b }}</div>
-                  <div>緯度: <br />{{ data.x }}</div>
-                  <div>経度: <br />{{ data.y }}</div>
+                <v-card width="180px" class="pa-1">
                   <div>
-                    時刻: {{ new Date(data.c).toLocaleTimeString("ja-JP") }}
+                    バス:<br />
+                    <span class="pl-2 text-blue"> {{ data.b }}</span>
+                  </div>
+                  <div>
+                    緯度:<br />
+                    <span class="pl-2 text-blue"> {{ data.x }}</span>
+                  </div>
+                  <div>
+                    経度:<br />
+                    <span class="pl-2 text-blue"> {{ data.y }}</span>
+                  </div>
+                  <div>
+                    時刻:
+                    <span class="pl-2 text-blue">
+                      {{ new Date(data.c).toLocaleTimeString("ja-JP") }}</span
+                    >
                   </div>
                 </v-card>
               </div>
