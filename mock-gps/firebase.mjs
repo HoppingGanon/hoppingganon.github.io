@@ -151,6 +151,21 @@ export async function loginGoogle() {
   });
 }
 
+export async function readGeoDataset(busNumber, maxCount = 10) {
+  const q = query(
+    collection(db, "bus", `${busNumber}`, "geo_data"),
+    orderBy("c", "desc"),
+    limit(maxCount)
+  );
+  const querySnapshot = await getDocs(q);
+  const dataset = [];
+
+  querySnapshot.forEach((doc) => {
+    dataset.push(doc.data());
+  });
+  return dataset;
+}
+
 export function runReader(
   busNumber,
   callback,
