@@ -6,8 +6,24 @@
       name="viewport"
       content="width=device-width,initial-scale=1.0, maximum-scale=1.0"
     />
+    <link rel="manifest" href="./manifest.json" />
 
     <title>mock-gps</title>
+
+    <script>
+      window.addEventListener("load", function () {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker
+            .register("./sw.mjs")
+            .then(function (registration) {
+              console.log("serviceWorker registed.");
+            })
+            .catch(function (error) {
+              console.warn("serviceWorker error.", error);
+            });
+        }
+      });
+    </script>
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <link
