@@ -64,7 +64,7 @@ export async function writeGeoData(busNumber) {
   if (auth.currentUser) {
     try {
       // Firestoreのドキュメントを設定します
-      // コレクション'users' -> ドキュメント'userId' -> コレクション'datasets' -> ドキュメント'datasetName'
+      // コレクション'bus' -> ドキュメント'{バス番号}' -> コレクション'geo_data' -> ドキュメント'{現在日時}'
 
       const geo = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
